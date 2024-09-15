@@ -14,7 +14,7 @@ def getAnggota(id: Union[int, None] = None) -> Union[list, dict]:
     # Column 3: Kelas
     # Column 4: Nomor telepon
     # Column 5: Divisi
-    # Column 8: ID kartu
+    # Column 6: ID kartu
 
     if id:
         siswa = findString(str(id), strict=True)
@@ -23,7 +23,7 @@ def getAnggota(id: Union[int, None] = None) -> Union[list, dict]:
         kelas = ws.cell(siswa.row, 3).value
         number = ws.cell(siswa.row, 4).value
         divisi = ws.cell(siswa.row, 5).value
-        id = ws.cell(siswa.row, 8).value
+        id = ws.cell(siswa.row, 6).value
 
         return {
             "nama": nama,
@@ -41,7 +41,7 @@ def getAnggota(id: Union[int, None] = None) -> Union[list, dict]:
             "kelas": list[2],
             "number": list[3],
             "divisi": list[4],
-            "id": list[7]
+            "id": list[5]
         })
 
     return siswa
