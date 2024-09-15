@@ -2,12 +2,17 @@ import gspread
 from gspread.cell import Cell
 from gspread.worksheet import Worksheet
 import re
+import json
 
 from typing import Union
 
 from .date import getTodayDate
+from .config import GSA_CREDENTIALS
 
-gc = gspread.service_account(filename="service_account.json")
+if GSA_CREDENTIALS:
+    gc = gspread.service_account_from_dict(json.loads(GSA_CREDENTIALS))
+else:
+    gc = gspread.service_account(filename="service_account.json")
 sheet = gc.open_by_key("1OqR2Bt7KQiojLqI_Jk74E3Z_DxiV264W4EvOn5tLRpA")
 wsAnggota = sheet.worksheet("Daftar Anggota")
 wsAbsensi = sheet.worksheet("Absensi")
