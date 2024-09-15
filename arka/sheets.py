@@ -5,9 +5,12 @@ import re
 
 from typing import Union
 
+from .date import getTodayDate
+
 gc = gspread.service_account(filename="service_account.json")
 sheet = gc.open_by_key("1OqR2Bt7KQiojLqI_Jk74E3Z_DxiV264W4EvOn5tLRpA")
-ws = sheet.worksheet("Daftar Anggota")
+wsAnggota = sheet.worksheet("Daftar Anggota")
+wsAbsensi = sheet.worksheet("Absensi")
 
 def getAnggota(id: Union[int, None] = None) -> Union[list, dict]:
     # Column 2: Nama
@@ -19,11 +22,11 @@ def getAnggota(id: Union[int, None] = None) -> Union[list, dict]:
     if id:
         siswa = findString(str(id), strict=True)
         if not siswa: return {"message": "Siswa tidak ditemukan"}, 404
-        nama = ws.cell(siswa.row, 2).value
-        kelas = ws.cell(siswa.row, 3).value
-        number = ws.cell(siswa.row, 4).value
-        divisi = ws.cell(siswa.row, 5).value
-        id = ws.cell(siswa.row, 6).value
+        nama = wsAnggota.cell(siswa.row, 2).value
+        kelas = wsAnggota.cell(siswa.row, 3).value
+        number = wsAnggota.cell(siswa.row, 4).value
+        divisi = wsAnggota.cell(siswa.row, 5).value
+        id = wsAnggota.cell(siswa.row, 6).value
 
         return {
             "nama": nama,
@@ -33,7 +36,7 @@ def getAnggota(id: Union[int, None] = None) -> Union[list, dict]:
             "id": id
         }
 
-    rawList = ws.get_all_values()
+    rawList = wsAnggota.get_all_values()
     siswa = []
     for list in rawList[1:]:
         siswa.append({
@@ -46,7 +49,7 @@ def getAnggota(id: Union[int, None] = None) -> Union[list, dict]:
 
     return siswa
 
-def findString(string: str, worksheet: Union[Worksheet, str] = ws, strict: bool = False) -> Union[Cell, None]:
+def findString(string: str, worksheet: Union[Worksheet, str] = wsAnggota, strict: bool = False) -> Union[Cell, None]:
     if type(worksheet) == str: worksheet = sheet.worksheet(worksheet)
 
     if strict:
@@ -54,3 +57,21 @@ def findString(string: str, worksheet: Union[Worksheet, str] = ws, strict: bool 
     else:
         regex = re.compile(fr"{string}.*")
         return worksheet.find(regex)
+
+def addAbsensi(id: int, worksheet: Union[Worksheet, str] = wsAbsensi):
+    todayDate = getTodayDate()
+
+    headerRowValues = wsAbsensi.row_values(1)
+    currentMaxCol = len(headerRowValues)
+    maxCol = currentMaxCol
+    if headerRowValues[-1] != todayDate:
+        maxCol += 1
+        wsAbsensi.update_cell(1, maxCol, todayDate)
+
+    siswa = getAnggota(id)
+    cariSiswa = findString(siswa["nama"], wsAbsensi, strict=True)
+    if wsAbsensi.cell(cariSiswa.row, maxCol).value == "v":
+        return {"message": "Siswa sudah absen!"}, 400
+
+    wsAbsensi.update_cell(cariSiswa.row, maxCol, "v")    
+    return {"message": f"Berhasil absensi"}
