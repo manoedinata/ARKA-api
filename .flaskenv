@@ -1,0 +1,2 @@
+FLASK_APP=arka
+FLASK_DEBUG=1
